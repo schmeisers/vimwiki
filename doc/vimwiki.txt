@@ -1613,7 +1613,6 @@ Example of diary section: >
 
 See |g:vimwiki_diary_months| if you would like to rename months.
 
-
 ------------------------------------------------------------------------------
 Calendar integration                                        *vimwiki-calendar*
 
@@ -1860,6 +1859,19 @@ Extension of wiki files: >
                        \ 'index': 'main', 'ext': '.document'}]
 
 <
+
+*vimwiki-option-diary_ext*
+------------------------------------------------------------------------------
+Key             Default value~
+diary_ext       .wiki
+
+Description~
+Extension of diary files: >
+  let g:vimwiki_list = [{'path': '~/my_site/',
+                       \ 'index': 'main', 'diary_ext': '.diary'}]
+
+<
+
 *vimwiki-option-syntax*
 ------------------------------------------------------------------------------
 Key             Default value     Values~
