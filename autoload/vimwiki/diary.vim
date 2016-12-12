@@ -85,7 +85,7 @@ endfun "}}}
 
 fun! s:get_diary_links() "{{{
   let rx = '^\d\{4}-\d\d-\d\d'
-  let s_files = glob(VimwikiGet('path').VimwikiGet('diary_rel_path').'*'.VimwikiGet('ext'))
+  let s_files = glob(VimwikiGet('path').VimwikiGet('diary_rel_path').'*'.VimwikiGet('diary_ext'))
   let files = split(s_files, '\n')
   call filter(files, 'fnamemodify(v:val, ":t") =~# "'.escape(rx, '\').'"')
 
@@ -287,7 +287,7 @@ function vimwiki#diary#calendar_sign(day, month, year) "{{{
   let day = s:prefix_zero(a:day)
   let month = s:prefix_zero(a:month)
   let sfile = VimwikiGet('path').VimwikiGet('diary_rel_path').
-        \ a:year.'-'.month.'-'.day.VimwikiGet('ext')
+        \ a:year.'-'.month.'-'.day.VimwikiGet('diary_ext')
   return filereadable(expand(sfile))
 endfunction "}}}
 

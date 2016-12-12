@@ -287,6 +287,9 @@ function! s:vimwiki_get_known_extensions() " {{{
     else
       let extensions['.wiki'] = 1
     endif
+    if has_key(wiki, 'diary_ext')
+      let extensions[wiki.diary_ext] = 1
+    endif
   endfor
   " append map g:vimwiki_ext2syntax
   for ext in keys(g:vimwiki_ext2syntax)
@@ -326,6 +329,7 @@ let s:vimwiki_defaults.path_html = ''   " '' is replaced by derived path.'_html/
 let s:vimwiki_defaults.css_name = 'style.css'
 let s:vimwiki_defaults.index = 'index'
 let s:vimwiki_defaults.ext = '.wiki'
+let s:vimwiki_defaults.diary_ext = '.wiki'
 let s:vimwiki_defaults.maxhi = 0
 let s:vimwiki_defaults.syntax = 'default'
 

@@ -306,6 +306,10 @@ function! vimwiki#base#resolve_link(link_text, ...) "{{{
     let root_dir = fnamemodify(source_file, ':p:h') . '/'
   endif
 
+  " set scheme if diary file
+  if s:is_diary_file(root_dir . link_text)
+    let link_infos.scheme = 'diary'
+  endif
 
   " extract the other items depending on the scheme
   if link_infos.scheme =~# '\mwiki\d\+'
@@ -337,7 +341,7 @@ function! vimwiki#base#resolve_link(link_text, ...) "{{{
           \ VimwikiGet('path', link_infos.index) .
           \ VimwikiGet('diary_rel_path', link_infos.index) .
           \ link_text .
-          \ VimwikiGet('ext', link_infos.index)
+          \ VimwikiGet('diary_ext', link_infos.index)
   elseif (link_infos.scheme ==# 'file' || link_infos.scheme ==# 'local')
         \ && is_relative
     let link_infos.filename = simplify(root_dir . link_text)
@@ -1886,9 +1890,10 @@ endfunction " }}}
 " s:normalize_link_in_diary
 function! s:normalize_link_in_diary(lnk) " {{{
   let link = a:lnk . VimwikiGet('ext')
+  let diary = a:lnk . VimwikiGet('diary_ext')
   let link_wiki = VimwikiGet('path') . '/' . link
   let link_diary = VimwikiGet('path') . '/'
-        \ . VimwikiGet('diary_rel_path') . '/' . link
+        \ . VimwikiGet('diary_rel_path') . '/' . diary
   let link_exists_in_diary = filereadable(link_diary)
   let link_exists_in_wiki = filereadable(link_wiki)
   let link_is_date = a:lnk =~# '\d\d\d\d-\d\d-\d\d'
