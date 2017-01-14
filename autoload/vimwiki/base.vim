@@ -307,7 +307,9 @@ function! vimwiki#base#resolve_link(link_text, ...) "{{{
   endif
 
   " set scheme if diary file
-  if s:is_diary_file(root_dir . link_text)
+  if is_relative == 1 && s:is_diary_file(root_dir . link_text)
+    let link_infos.scheme = 'diary'
+  elseif s:is_diary_file(link_text)
     let link_infos.scheme = 'diary'
   endif
 
@@ -352,7 +354,7 @@ function! vimwiki#base#resolve_link(link_text, ...) "{{{
     let link_text = fnamemodify(link_text, ':p')
     let link_infos.filename = simplify(link_text)
   endif
-
+  
   let link_infos.filename = vimwiki#path#normalize(link_infos.filename)
   return link_infos
 endfunction "}}}
