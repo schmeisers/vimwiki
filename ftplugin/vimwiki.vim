@@ -264,14 +264,14 @@ command! -buffer VimwikiNextLink call vimwiki#base#find_next_link()
 command! -buffer VimwikiPrevLink call vimwiki#base#find_prev_link()
 command! -buffer VimwikiDeleteLink call vimwiki#base#delete_link()
 command! -buffer VimwikiRenameLink call vimwiki#base#rename_link()
-command! -buffer VimwikiFollowLink call vimwiki#base#follow_link('nosplit')
+command! -buffer VimwikiFollowLink call vimwiki#base#follow_link('nosplit', 0, 1)
 command! -buffer VimwikiGoBackLink call vimwiki#base#go_back_link()
-command! -buffer VimwikiSplitLink call vimwiki#base#follow_link('split')
-command! -buffer VimwikiVSplitLink call vimwiki#base#follow_link('vsplit')
+command! -buffer VimwikiSplitLink call vimwiki#base#follow_link('hsplit', 0, 1)
+command! -buffer VimwikiVSplitLink call vimwiki#base#follow_link('vsplit', 0, 1)
 
 command! -buffer -nargs=? VimwikiNormalizeLink call vimwiki#base#normalize_link(<f-args>)
 
-command! -buffer VimwikiTabnewLink call vimwiki#base#follow_link('tabnew')
+command! -buffer VimwikiTabnewLink call vimwiki#base#follow_link('tab', 0, 1)
 
 command! -buffer VimwikiGenerateLinks call vimwiki#base#generate_links()
 
@@ -295,6 +295,8 @@ command! -buffer -range -nargs=1 VimwikiChangeSymbolTo call vimwiki#lst#change_m
 command! -buffer -range -nargs=1 VimwikiListChangeSymbolI call vimwiki#lst#change_marker(<line1>, <line2>, <f-args>, 'i')
 command! -buffer -nargs=1 VimwikiChangeSymbolInListTo call vimwiki#lst#change_marker_in_list(<f-args>)
 command! -buffer -range VimwikiToggleListItem call vimwiki#lst#toggle_cb(<line1>, <line2>)
+command! -buffer -range VimwikiIncrementListItem call vimwiki#lst#increment_cb(<line1>, <line2>)
+command! -buffer -range VimwikiDecrementListItem call vimwiki#lst#decrement_cb(<line1>, <line2>)
 command! -buffer -range -nargs=+ VimwikiListChangeLvl call vimwiki#lst#change_level(<line1>, <line2>, <f-args>)
 command! -buffer -range VimwikiRemoveSingleCB call vimwiki#lst#remove_cb(<line1>, <line2>)
 command! -buffer VimwikiRemoveCBInList call vimwiki#lst#remove_cb_in_list()
@@ -327,7 +329,7 @@ command! -buffer -nargs=* -complete=custom,vimwiki#tags#complete_tags
 if g:vimwiki_use_mouse
   nmap <buffer> <S-LeftMouse> <NOP>
   nmap <buffer> <C-LeftMouse> <NOP>
-  nnoremap <silent><buffer> <2-LeftMouse> :call vimwiki#base#follow_link("nosplit", "\<lt>2-LeftMouse>")<CR>
+  nnoremap <silent><buffer> <2-LeftMouse> :call vimwiki#base#follow_link('nosplit', 0, 1, "\<lt>2-LeftMouse>")<CR>
   nnoremap <silent><buffer> <S-2-LeftMouse> <LeftMouse>:VimwikiSplitLink<CR>
   nnoremap <silent><buffer> <C-2-LeftMouse> <LeftMouse>:VimwikiVSplitLink<CR>
   nnoremap <silent><buffer> <RightMouse><LeftMouse> :VimwikiGoBackLink<CR>
@@ -445,6 +447,23 @@ nnoremap <silent><script><buffer>
 vnoremap <silent><script><buffer>
       \ <Plug>VimwikiToggleListItem :VimwikiToggleListItem<CR>
 
+if !hasmapto('<Plug>VimwikiIncrementListItem')
+  nmap <silent><buffer> gln <Plug>VimwikiIncrementListItem
+  vmap <silent><buffer> gln <Plug>VimwikiIncrementListItem
+endif
+if !hasmapto('<Plug>VimwikiDecrementListItem')
+  nmap <silent><buffer> glp <Plug>VimwikiDecrementListItem
+  vmap <silent><buffer> glp <Plug>VimwikiDecrementListItem
+endif
+nnoremap <silent><script><buffer>
+      \ <Plug>VimwikiIncrementListItem :VimwikiIncrementListItem<CR>
+vnoremap <silent><script><buffer>
+      \ <Plug>VimwikiIncrementListItem :VimwikiIncrementListItem<CR>
+nnoremap <silent><script><buffer>
+      \ <Plug>VimwikiDecrementListItem :VimwikiDecrementListItem<CR>
+vnoremap <silent><script><buffer>
+      \ <Plug>VimwikiDecrementListItem :VimwikiDecrementListItem<CR>
+
 if !hasmapto('<Plug>VimwikiDecreaseLvlSingleItem', 'i')
   imap <silent><buffer> <C-D>
         \ <Plug>VimwikiDecreaseLvlSingleItem
@@ -478,8 +497,8 @@ if !hasmapto('<Plug>VimwikiListToggle', 'i')
 endif
 inoremap <silent><script><buffer> <Plug>VimwikiListToggle <Esc>:VimwikiListToggle<CR>
 
-nnoremap <silent> <buffer> o :call vimwiki#lst#kbd_o()<CR>
-nnoremap <silent> <buffer> O :call vimwiki#lst#kbd_O()<CR>
+nnoremap <silent> <buffer> o :<C-U>call vimwiki#lst#kbd_o()<CR>
+nnoremap <silent> <buffer> O :<C-U>call vimwiki#lst#kbd_O()<CR>
 
 if !hasmapto('<Plug>VimwikiRenumberList')
   nmap <silent><buffer> glr <Plug>VimwikiRenumberList

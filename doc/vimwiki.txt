@@ -351,6 +351,16 @@ gL<Space>               Remove checkboxes from all sibling list items.
                         :map <Leader><Space> <Plug>VimwikiRemoveSingleCB
                         :map <Leader><Space> <Plug>VimwikiRemoveCBInList
 <
+                        *vimwiki_gln* *vimwiki_glp*
+gln                     Increase the "done" status of a list checkbox, i.e.
+                        from [ ] to [.] to [o] etc. See |vimwiki-todo-lists|.
+glp                     Decrease the "done" status.
+                        To remap: >
+                        :nmap <M-+> <Plug>VimwikiIncrementListItem
+                        :vmap <M-+> <Plug>VimwikiIncrementListItem
+                        :nmap <M--> <Plug>VimwikiDecrementListItem
+                        :vmap <M--> <Plug>VimwikiDecrementListItem
+
                         *vimwiki_gll* *vimwiki_gLl*
 gll                     Increase the level of a list item.
 gLl                     Increase the level of a list item and all child items.
@@ -363,7 +373,7 @@ glh                     Decrease the level of a list item.
 gLh                     Decrease the level of a list item and all child items.
                         To remap: >
                         :map << <Plug>VimwikiDecreaseLvlSingleItem
-                        :map >>> <Plug>VimwikiDecreaseLvlWholeItem
+                        :map <<< <Plug>VimwikiDecreaseLvlWholeItem
 <
                         *vimwiki_glr* *vimwiki_gLr*
 glr                     Renumber list items if the cursor is on a numbered
@@ -594,6 +604,9 @@ il                      A single list item.
 ------------------------------------------------------------------------------
 4.2. Local commands                                   *vimwiki-local-commands*
 
+These commands are only available (and meaningful) when you are currently in a
+Vimwiki file.
+
 *:VimwikiFollowLink*
     Follow wiki link (or create target wiki page if needed).
 
@@ -739,8 +752,38 @@ il                      A single list item.
 
 *:VimwikiGenerateTags* tagname1 tagname2 ...
     Creates or updates an overview on all tags of the wiki with links to all
-    their instances.  Supports |cmdline-completion|.  If
-    no arguments (tags) are specified, outputs all tags.
+    their instances.  Supports |cmdline-completion|.  If no arguments (tags)
+    are specified, outputs all tags.  To make this command work properly, make
+    sure the tags have been built (see |vimwiki-build-tags|).
+
+------------------------------------------------------------------------------
+4.3. Functions                                              *vimwiki-functions*
+
+Functions to interact with Vimwiki. (It's intended that most commands will be
+replaced with corresponding function calls in the future.)
+Warning: this is currently unstable and likely to change.
+
+
+To map them to a key, use >
+ nnoremap <C-K> :call vimwiki#base#function_name(arg1, arg2)<CR>
+<
+
+                                                          *vimwiki-follow_link*
+vimwiki#base#follow_link({split}, {reuse}, {move_cursor})
+    Open the link under the cursor. {split} can have the following values:
+        'nosplit'       open the link in the current window
+        'vsplit'        open in a vertically split window
+        'hsplit'        open in a horizontally split window
+        'tab'           open in a new tab
+
+    If {reuse} is 1 and {split} one of 'vsplit' or 'hsplit', open the link in
+    a possibly existing split window instead of making a new split.
+
+    If {move_cursor} is 1 the cursor moves to the window or tab with the
+    opened link, otherwise, it stays in the window or tab with the link.
+
+    For example, <CR> is per default mapped to
+    vimwiki#base#follow_link('nosplit', 0, 1)
 
 
 ==============================================================================
@@ -854,7 +897,7 @@ Raw URLs are also supported: >
 
 External files~
 
-The "file:" and "local:" schemes allow you to directly link to arbitray
+The "file:" and "local:" schemes allow you to directly link to arbitrary
 resources using absolute or relative paths: >
   [[file:/home/somebody/a/b/c/music.mp3]]
   [[file:C:/Users/somebody/d/e/f/music.mp3]]
@@ -1144,7 +1187,8 @@ This might be useful for coloring program code with external JS tools
 such as Google's syntax highlighter.
 
 You can setup Vimwiki to highlight code snippets in preformatted text.
-See |vimwiki-option-nested_syntaxes|
+See |vimwiki-option-nested_syntaxes| and
+|vimwiki-option-automatic_nested_syntaxes|.
 
 
 ------------------------------------------------------------------------------
@@ -1264,8 +1308,9 @@ which opens up a popup menu with all tags defined in the wiki starting with
 
 Tags are also treated as |vimwiki-anchors| (similar to bold text).
 
-Note that tag search/jump/completion commands need certain metadata saved in
-the wiki folder.  This metadata file can be manually updated by running
+                                                          *vimwiki-build-tags*
+Note that the tag search/jump/completion commands need certain metadata saved
+in the wiki folder.  This metadata file can be manually updated by running
 |:VimwikiRebuildTags|.  When the option |vimwiki-option-auto_tags| is enabled,
 the tags metadata will be auto-updated on each page save.
 
@@ -1281,40 +1326,50 @@ Tags-related commands and options:
 6. Folding/Outline                                           *vimwiki-folding*
 
 Vimwiki can fold or outline sections using headers and preformatted blocks.
-Alternatively, one can fold list subitems instead.
+Alternatively, one can fold list subitems instead. Folding is not enabled
+by default, and requires the |g:vimwiki_folding| variable to be set.
 
-Example for list folding:
+Example for list folding with |g:vimwiki_folding| set to 'list':
+
 = My current task =
-  * [ ] Do stuff 1
-    * [ ] Do substuff 1.1
-    * [ ] Do substuff 1.2
-      * [ ] Do substuff 1.2.1
-      * [ ] Do substuff 1.2.2
-    * [ ] Do substuff 1.3
-  * [ ] Do stuff 2
-  * [ ] Do stuff 3
+* [ ] Do stuff 1
+  * [ ] Do substuff 1.1
+  * [ ] Do substuff 1.2
+    * [ ] Do substuff 1.2.1
+    * [ ] Do substuff 1.2.2
+  * [ ] Do substuff 1.3
+* [ ] Do stuff 2
+* [ ] Do stuff 3
 
 Hit |zM| :
-= My current task = [8] --------------------------------------~
+= My current task =
+* [ ] Do stuff 1 [6] --------------------------------------~
+* [ ] Do stuff 2
+* [ ] Do stuff 3
 
 Hit |zr| :
-= My current task =~
-  * [ ] Do stuff 1 [5] --------------------------------------~
-  * [ ] Do stuff 2~
-  * [ ] Do stuff 3~
+= My current task =
+* [ ] Do stuff 1
+  * [ ] Do substuff 1.1
+  * [ ] Do substuff 1.2 [3] -------------------------------~
+  * [ ] Do substuff 1.3
+* [ ] Do stuff 2
+* [ ] Do stuff 3
 
-Hit |zr| one more time:
-= My current task =~
-  * [ ] Do stuff 1~
-    * [ ] Do substuff 1.1~
-    * [ ] Do substuff 1.2 [2] -------------------------------~
-    * [ ] Do substuff 1.3~
-  * [ ] Do stuff 2~
-  * [ ] Do stuff 3~
+Hit |zr| one more time :
+= My current task =
+* [ ] Do stuff 1
+  * [ ] Do substuff 1.1
+  * [ ] Do substuff 1.2
+    * [ ] Do substuff 1.2.1
+    * [ ] Do substuff 1.2.2
+  * [ ] Do substuff 1.3
+* [ ] Do stuff 2
+* [ ] Do stuff 3
 
 Note: If you use the default Vimwiki syntax, folding on list items will work
 properly only if all of them are indented using the current 'shiftwidth'.
-For MediaWiki, * or # should be in the first column.
+For MediaWiki syntax, * or # should be in the first column.
 
 To turn folding on/off check |g:vimwiki_folding|.
 
@@ -1353,6 +1408,18 @@ To apply a concrete HTML template to a wiki page, place:
 into it.
 
 See |vimwiki-option-template_path| for details.
+
+------------------------------------------------------------------------------
+%date                                                           *vimwiki-date*
+
+The date of the wiki page. The value can be used in the HTML template, see
+|vimwiki-option-template_path| for details.
+
+%date 2017-07-08
+%date
+
+If you omit the date after the placeholder, the date of the HTML conversion is
+used.
 
 
 ==============================================================================
@@ -1489,7 +1556,7 @@ See |vimwiki_glstar|, |vimwiki_gl#| |vimwiki_gl-|, |vimwiki_gl-|,
 |vimwiki_gl1|, |vimwiki_gla|, |vimwiki_glA|, |vimwiki_gli|, |vimwiki_glI|
 
 
-Use glr and gLr, if the numbers of a numbered list are mixed up. See
+Use glr and gLr if the numbers of a numbered list are mixed up. See
 |vimwiki_glr| and |vimwiki_gLr|.
 
 
@@ -1541,6 +1608,9 @@ child items (see also |g:vimwiki_listsyms|): >
     [o] -- 34-66%
     [O] -- 67-99%
     [X] -- 100%
+
+You can use |vimwiki_gln| and |vimwiki_glp| to change the "done" status of a
+checkbox without a childitem.
 
 It is possible to toggle several list items using visual mode. But note that
 instead of toggling every item individually, all items get checked if the
@@ -1917,11 +1987,13 @@ Each template could look like: >
         <div class="content">
         %content%
         </div>
+        <p><small>Page created on %date%</small></p>
     </body>
     </html>
 
 where
   %title% is replaced by a wiki page name or by a |vimwiki-title|
+  %date% is replaced with the current date or by |vimwiki-date|
   %root_path% is replaced by a count of ../ for pages buried in subdirs:
     if you have wikilink [[dir1/dir2/dir3/my page in a subdir]] then
     %root_path% is replaced by '../../../'.
@@ -2042,7 +2114,9 @@ Just write your preformatted text in your file like this >
  my preformatted text
  }}}
 
-where xxx is a Vim filetype.
+where xxx is a filetype which is known to Vim. For example, for C++
+highlighting, use "cpp" (not "c++"). For a list of known filetypes, type
+":setf " and hit Ctrl+d.
 
 Note that you may have to reload the file (|:edit|) to see the highlight.
 
@@ -2112,8 +2186,12 @@ The following arguments, in this order, are passed to the script:
 10. root_path : a count of ../ for pages buried in subdirs
     For example, if you have wikilink [[dir1/dir2/dir3/my page in a subdir]]
     then this argument is '../../../'.
+11. custom_args : custom arguments that will be passed to the conversion
+    (can be defined in g:vimwiki_list as 'custom_wiki2html_args' parameter,
+    see |vimwiki-option-custom_wiki2html_args|)
+    script.
 
-Options 7-10 are experimental and may change in the future.  If any of these
+Options 7-11 are experimental and may change in the future.  If any of these
 parameters is empty, a hyphen "-" is passed to the script in its place.
 
 For an example and further instructions, refer to the following script:
@@ -2124,6 +2202,17 @@ An alternative converter was developed by Jason6Anderson, and can
 be located at https://github.com/vimwiki-backup/vimwiki/issues/384
 
 To use the internal wiki2html converter, use an empty string (the default).
+
+
+vimwiki-option-custom_wiki2html_args
+-----------------------------------------------------------------------------
+Key                     Default value~
+custom_wiki2html_args   ''
+
+Description
+If a custom script is called with |vimwiki-option-custom_wiki2html|, additional
+parameters can be passed by setting them using 'custom_wiki2html_args' in
+|g:vimwiki_list|.
 
 
 *vimwiki-option-list_margin*
@@ -2257,11 +2346,11 @@ Default: 'Vimwiki'
 ------------------------------------------------------------------------------
 *g:vimwiki_listsyms*
 
-String of 5 symbols to show the progression of todo list items.
+String of at least two symbols to show the progression of todo list items.
 Default value is ' .oOX'.
 
 The first char is for 0% done items.
-The fifth is for 100% done items.
+The last is for 100% done items.
 
 You can set it to some more fancy symbols like this:
 >
@@ -2291,6 +2380,8 @@ Value           Description~
 'expr'          Folding based on expression (folds sections and code blocks)
 'syntax'        Folding based on syntax (folds sections; slower than 'expr')
 'list'          Folding based on expression (folds list subitems; much slower)
+'custom'        Leave the folding settings as they are (e.g. set by another
+                plugin)
 
 Default: ''
 
@@ -2309,6 +2400,19 @@ Convert newlines to <br />s in multiline list items.
 
 Value           Description~
 0               Newlines in a list item are converted to <br />s.
+1               Ignore newlines.
+
+Default: 1
+
+
+------------------------------------------------------------------------------
+*g:vimwiki_text_ignore_newline*
+
+This is HTML related.
+Convert newlines to <br />s in text.
+
+Value           Description~
+0               Newlines in text are converted to <br />s.
 1               Ignore newlines.
 
 Default: 1
